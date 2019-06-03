@@ -1,9 +1,9 @@
 [data paths]
-conj_path_local =  ./conj_train/
+conj_path_local =  ./conj_train_avg/
 
 
 [experiment name]
-name = conjunctival_test_norm_150000
+name = conjunctival_avg_result
 
 
 [data attributes]
