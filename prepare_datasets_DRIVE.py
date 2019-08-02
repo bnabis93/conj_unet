@@ -75,7 +75,75 @@ channels = 3
 img_height = 584
 img_width = 565
 
-  
+def get_datasets2(imgs_dir,groundTruth_dir,borderMasks_dir,train_test="null"):
+    imgs = np.empty((num_imgs,img_height,img_width,channels))
+    groundTruth = np.empty((num_imgs,img_height,img_width))
+    border_masks = np.empty((num_imgs,img_height,img_width))
+    
+    print('img dir : ',imgs_dir)
+    for count, filename in enumerate(sorted(os.listdir(imgs_dir)), start=0):
+        print ("original image: " +filename)
+        img = Image.open(imgs_dir+filename)
+        imgs[count] = np.asarray(img)
+        print('file name : ',imgs_dir+ filename)
+    
+    print('ground truth dir : ', groundTruth_dir)
+    for count, filename in enumerate(sorted(os.listdir(groundTruth_dir)), start=0):
+        groundTruth_name = filename
+        print ("ground truth name: " + groundTruth_name)
+        g_truth = Image.open(groundTruth_dir + groundTruth_name)
+        groundTruth[count] = np.asarray(g_truth)
+        
+    for count, filename in enumerate(sorted(os.listdir(borderMasks_dir)), start=0):
+        border_masks_name = ""
+        if train_test=="train":
+            border_masks_name = filename
+        elif train_test=="test":
+            border_masks_name = filename
+        else:
+            print ("specify if train or test!!")
+            exit()
+        print ("border masks name: " + border_masks_name)
+        b_mask = Image.open(borderMasks_dir + border_masks_name)
+        border_masks[count] = np.asarray(b_mask)
+        #print(b_mask,'\n')
+    
+    print(border_masks.shape)
+          
+    print ("imgs max: " +str(np.max(imgs)))
+    print ("imgs min: " +str(np.min(imgs)))
+    assert(np.max(groundTruth)==255 and np.max(border_masks)==255)
+    assert(np.min(groundTruth)==0 and np.min(border_masks)==0)
+    print ("ground truth and border masks are correctly withih pixel value range 0-255 (black-white)")
+    
+    #reshaping for my standard tensors
+    imgs = np.transpose(imgs,(0,3,1,2))
+    assert(imgs.shape == (num_imgs,channels,img_height,img_width))
+    groundTruth = np.reshape(groundTruth,(num_imgs,1,img_height,img_width))
+    border_masks = np.reshape(border_masks,(num_imgs,1,img_height,img_width))
+    assert(groundTruth.shape == (num_imgs,1,img_height,img_width))
+    assert(border_masks.shape == (num_imgs,1,img_height,img_width))
+    return imgs, groundTruth, border_masks
+
+
+imgs_train,groundTruth_train,border_masks_train =get_datasets2(original_img_train_path,ground_truth_img_train_path,border_masks_imgs_train_path,"train")
+print ("saving train datasets")
+write_hdf5(imgs_train, dataset_dir_path + "DRIVE_dataset_imgs_train.hdf5")
+write_hdf5(groundTruth_train, dataset_dir_path + "DRIVE_dataset_groundTruth_train.hdf5")
+write_hdf5(border_masks_train,dataset_dir_path + "DRIVE_dataset_borderMasks_train.hdf5")
+
+print('[Training Done]')
+
+#getting the testing datasets
+imgs_test, groundTruth_test, border_masks_test = get_datasets2(original_img_test_path,ground_truth_img_test_path,border_masks_imgs_test_path,"test")
+
+write_hdf5(imgs_test,dataset_dir_path + "DRIVE_dataset_imgs_test.hdf5")
+write_hdf5(groundTruth_test, dataset_dir_path + "DRIVE_dataset_groundTruth_test.hdf5")
+write_hdf5(border_masks_test,dataset_dir_path + "DRIVE_dataset_borderMasks_test.hdf5")
+
+
+'''
+
 def get_datasets(imgs_dir,groundTruth_dir,borderMasks_dir,train_test="null"):
     
     imgs = np.empty((num_imgs,img_height,img_width,channels))
@@ -88,6 +156,7 @@ def get_datasets(imgs_dir,groundTruth_dir,borderMasks_dir,train_test="null"):
             print ("original image: " +files[i])
             img = Image.open(imgs_dir+files[i])
             imgs[i] = np.asarray(img)
+            print('file name : ',imgs_dir+ files[i])
             
             #corresponding ground truth
             groundTruth_name = files[i][0:2] + "_manual1.gif"
@@ -129,6 +198,7 @@ def get_datasets(imgs_dir,groundTruth_dir,borderMasks_dir,train_test="null"):
 
 if not os.path.exists(dataset_dir_path):
     os.makedirs(dataset_dir_path)
+    
 #getting the training datasets
 imgs_train, groundTruth_train, border_masks_train = get_datasets(original_img_train_path,ground_truth_img_train_path,border_masks_imgs_train_path,"train")
 print ("saving train datasets")
@@ -141,3 +211,4 @@ imgs_test, groundTruth_test, border_masks_test = get_datasets(original_img_test_
 write_hdf5(imgs_test,dataset_dir_path + "DRIVE_dataset_imgs_test.hdf5")
 write_hdf5(groundTruth_test, dataset_dir_path + "DRIVE_dataset_groundTruth_test.hdf5")
 write_hdf5(border_masks_test,dataset_dir_path + "DRIVE_dataset_borderMasks_test.hdf5")
+'''
